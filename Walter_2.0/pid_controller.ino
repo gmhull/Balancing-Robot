@@ -7,8 +7,8 @@ void calculate_PID(){
   if(pid_i_mem < -400)pid_i_mem = -400;
   
   pid_output = pid_p_gain * pid_error_temp + pid_i_mem + pid_d_gain * (pid_error_temp - pid_last_d_error);
-  if(pid_output > 400)pid_output = pid_max_output;
-  else if(pid_output < -400)pid_output = -pid_max_output;
+  if(pid_output > 400)pid_output = pid_max;
+  else if(pid_output < -400)pid_output = -pid_max;
 
   pid_last_d_error = pid_error_temp;
 
