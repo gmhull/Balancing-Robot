@@ -3,12 +3,12 @@ void calculate_PID(){
   pid_error_temp = pid_angle_input - balancing_setpoint - pid_setpoint;
 
   pid_i_mem += pid_i_gain * pid_error_temp;
-  if(pid_i_mem > 400)pid_i_mem = 400;
-  if(pid_i_mem < -400)pid_i_mem = -400;
+  if(pid_i_mem > pid_max)pid_i_mem = pid_max;
+  if(pid_i_mem < -pid_max)pid_i_mem = -pid_max;
   
   pid_output = pid_p_gain * pid_error_temp + pid_i_mem + pid_d_gain * (pid_error_temp - pid_last_d_error);
-  if(pid_output > 400)pid_output = pid_max;
-  else if(pid_output < -400)pid_output = -pid_max;
+  if(pid_output > pid_max)pid_output = pid_max;
+  else if(pid_output < -pid_max)pid_output = -pid_max;
 
   pid_last_d_error = pid_error_temp;
 
