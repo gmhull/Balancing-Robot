@@ -86,6 +86,23 @@ void loop() {
 //  Serial.print(", Gyro Yaw: ");
 //  Serial.println(gyro_yaw/65.5);
 
+  calculate_PID();
+
+  ////////////////////////////////////////////////////////////////////////
+  // Ultrasonic Code
+  ////////////////////////////////////////////////////////////////////////
+  send_signal(0);
+  us_distance[0] = receive_signal(0);
+  send_signal(1);
+  us_distance[1] = receive_signal(1);
+  Serial.print("Distance 1: ");
+  Serial.print(us_distance[0]);
+  Serial.print(", Distance 2: ");
+  Serial.println(us_distance[1]);
+
+  ////////////////////////////////////////////////////////////////////////
+  // Motor Calculations
+  ////////////////////////////////////////////////////////////////////////
   // Datasheet says 1us is the lowest delay for the high pulse
   // 640us was the lowest delay I could do for the low pulse
   Serial.println("Slow Spin");
@@ -107,13 +124,6 @@ void loop() {
     delayMicroseconds(700); 
   }
   delay(1000);
-  
-  calculate_PID();
-
-  ////////////////////////////////////////////////////////////////////////
-  // Motor Calculations
-  ////////////////////////////////////////////////////////////////////////
-
 
   // Control the time of each cycle to be 4 milliseconds.
   while(micros() - cycle_timer < 4000);
