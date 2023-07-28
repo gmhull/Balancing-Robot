@@ -31,11 +31,8 @@ const int rightMotorStep = 4;
 const int rightMotorDir = 5;
 
 // Ultrasonic Variables
-const int trigPin_1 = 8;
-const int echoPin_1 = 9;
-const int trigPin_2 = 10;
-const int echoPin_2 = 11;
-
+const int trigPin[2] = {8, 10};
+const int echoPin[2] = {9, 11};
 
 void setup() {
   Serial.begin(57600);
@@ -46,6 +43,10 @@ void setup() {
   pinMode(leftMotorDir, OUTPUT);
   pinMode(rightMotorStep, OUTPUT);
   pinMode(rightMotorDir, OUTPUT);
+  pinMode(trigPin[0], OUTPUT);
+  pinMode(trigPin[1], OUTPUT);
+  pinMode(echoPin[0], INPUT);
+  pinMode(echoPin[1], INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set up the MPU6050 chip
