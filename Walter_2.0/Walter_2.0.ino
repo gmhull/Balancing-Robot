@@ -39,6 +39,15 @@ void setup() {
   Serial.println("Starting");
   Wire.begin(); 
 
+  // Setup interrupt timer settings
+  TCCR2A = 0;
+  TCCR2B = 0;
+  TIMSK2 |= (1 << OCIE2A); // Enable Output Compare Match for timer 2. 
+  // Caluculate the OCR register  with this equation: OCR2A = (speed * 16MHz / prescalar) - 1
+  TCCR2B |= (1 << CS21); // Prescalar = 8
+  OCR2A = 39; // 39 = (20us * 16MHz / 8) - 1
+  TCCR2A |= (1 << WGM21); // Set mode to CTC (clear time on compare)
+
   pinMode(leftMotorStep, OUTPUT);
   pinMode(leftMotorDir, OUTPUT);
   pinMode(rightMotorStep, OUTPUT);
@@ -128,4 +137,15 @@ void loop() {
   // Control the time of each cycle to be 4 milliseconds.
   while(micros() - cycle_timer < 4000);
   cycle_timer = micros();
+}
+
+////////////////////////////////////////////////////////////////////////
+// Send Motor Signals
+////////////////////////////////////////////////////////////////////////
+ISR(TIMER2_COMPA_vect){
+  // Add motor signals
+  // Left Motor
+  
+  // Right Motor
+  
 }
