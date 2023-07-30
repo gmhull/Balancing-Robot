@@ -31,21 +31,31 @@ const int rightMotorStep = 4;
 const int rightMotorDir = 5;
 
 // Ultrasonic Variables
-const int trigPin_1 = 8;
-const int echoPin_1 = 9;
-const int trigPin_2 = 10;
-const int echoPin_2 = 11;
-
+const int trigPin[2] = {8, 10};
+const int echoPin[2] = {9, 11};
 
 void setup() {
   Serial.begin(57600);
   Serial.println("Starting");
   Wire.begin(); 
 
+  // Setup interrupt timer settings
+  TCCR2A = 0;
+  TCCR2B = 0;
+  TIMSK2 |= (1 << OCIE2A); // Enable Output Compare Match for timer 2. 
+  // Caluculate the OCR register  with this equation: OCR2A = (speed * 16MHz / prescalar) - 1
+  TCCR2B |= (1 << CS21); // Prescalar = 8
+  OCR2A = 39; // 39 = (20us * 16MHz / 8) - 1
+  TCCR2A |= (1 << WGM21); // Set mode to CTC (clear time on compare)
+
   pinMode(leftMotorStep, OUTPUT);
   pinMode(leftMotorDir, OUTPUT);
   pinMode(rightMotorStep, OUTPUT);
   pinMode(rightMotorDir, OUTPUT);
+  pinMode(trigPin[0], OUTPUT);
+  pinMode(trigPin[1], OUTPUT);
+  pinMode(echoPin[0], INPUT);
+  pinMode(echoPin[1], INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set up the MPU6050 chip
@@ -85,6 +95,23 @@ void loop() {
 //  Serial.print(", Gyro Yaw: ");
 //  Serial.println(gyro_yaw/65.5);
 
+  calculate_PID();
+
+  ////////////////////////////////////////////////////////////////////////
+  // Ultrasonic Code
+  ////////////////////////////////////////////////////////////////////////
+  send_signal(0);
+  us_distance[0] = receive_signal(0);
+  send_signal(1);
+  us_distance[1] = receive_signal(1);
+  Serial.print("Distance 1: ");
+  Serial.print(us_distance[0]);
+  Serial.print(", Distance 2: ");
+  Serial.println(us_distance[1]);
+
+  ////////////////////////////////////////////////////////////////////////
+  // Motor Calculations
+  ////////////////////////////////////////////////////////////////////////
   // Datasheet says 1us is the lowest delay for the high pulse
   // 640us was the lowest delay I could do for the low pulse
   Serial.println("Slow Spin");
@@ -104,6 +131,7 @@ void loop() {
     delayMicroseconds(1000); 
   }
   delay(1000);
+<<<<<<< HEAD
   
 //  calculate_PID();
 
@@ -111,8 +139,21 @@ void loop() {
   // Motor Calculations
   ////////////////////////////////////////////////////////////////////////
 
+=======
+>>>>>>> cc4d0a2cd9747121d71262a9ae4310cf36668d71
 
   // Control the time of each cycle to be 4 milliseconds.
   while(micros() - cycle_timer < 4000);
   cycle_timer = micros();
+}
+
+////////////////////////////////////////////////////////////////////////
+// Send Motor Signals
+////////////////////////////////////////////////////////////////////////
+ISR(TIMER2_COMPA_vect){
+  // Add motor signals
+  // Left Motor
+  
+  // Right Motor
+  
 }
