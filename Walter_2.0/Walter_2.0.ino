@@ -88,26 +88,24 @@ void loop() {
   // Datasheet says 1us is the lowest delay for the high pulse
   // 640us was the lowest delay I could do for the low pulse
   Serial.println("Slow Spin");
-  digitalWrite(rightMotorDir, HIGH);
   for (int x = 0; x < 200; x++){
     digitalWrite(rightMotorStep, HIGH);  
-    delayMicroseconds(6); 
+    delayMicroseconds(200); 
     digitalWrite(rightMotorStep, LOW);  
-    delayMicroseconds(800); 
+    delayMicroseconds(1000); 
   }
   delay(1000);
 
   Serial.println("Fast Spin");
-  digitalWrite(rightMotorDir, LOW);
   for (int x = 0; x < 200; x++){
-    digitalWrite(rightMotorStep, HIGH);  
-    delayMicroseconds(2); 
-    digitalWrite(rightMotorStep, LOW);  
-    delayMicroseconds(700); 
+    digitalWrite(leftMotorStep, HIGH);  
+    delayMicroseconds(200); 
+    digitalWrite(leftMotorStep, LOW);  
+    delayMicroseconds(1000); 
   }
   delay(1000);
   
-  calculate_PID();
+//  calculate_PID();
 
   ////////////////////////////////////////////////////////////////////////
   // Motor Calculations
