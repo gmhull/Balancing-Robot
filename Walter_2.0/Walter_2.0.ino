@@ -29,6 +29,8 @@ const int leftMotorStep = 2;
 const int leftMotorDir = 3;
 const int rightMotorStep = 4;
 const int rightMotorDir = 5;
+int throttle_counter_left_motor, throttle_left_motor_memory, throttle_left_motor;
+int throttle_counter_right_motor, throttle_right_motor_memory, throttle_right_motor;
 
 // Ultrasonic Variables
 const int trigPin[2] = {8, 10};
@@ -59,11 +61,9 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set up the MPU6050 chip
-//  init_gyro();
-//  calibrate_gyro();
+  init_gyro();
+  calibrate_gyro();
 
-  
-//  digitalWrite(LED_BUILTIN, HIGH);
   Serial.println("Ready");
   start = 1;
   cycle_timer = micros();
@@ -80,7 +80,9 @@ void loop() {
   ////////////////////////////////////////////////////////////////////////
   // Angle Calculations
   ////////////////////////////////////////////////////////////////////////
-//  read_gyro();
+  read_gyro();
+
+//  angle = 
 
 //  Serial.print("Acc X: ");
 //  Serial.print(acc_X/8192);
@@ -95,52 +97,33 @@ void loop() {
 //  Serial.print(", Gyro Yaw: ");
 //  Serial.println(gyro_yaw/65.5);
 
-  calculate_PID();
-
   ////////////////////////////////////////////////////////////////////////
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
-  send_signal(0);
-  us_distance[0] = receive_signal(0);
-  send_signal(1);
-  us_distance[1] = receive_signal(1);
-  Serial.print("Distance 1: ");
-  Serial.print(us_distance[0]);
-  Serial.print(", Distance 2: ");
-  Serial.println(us_distance[1]);
+//  send_signal(0);
+//  us_distance[0] = receive_signal(0);
+//  send_signal(1);
+//  us_distance[1] = receive_signal(1);
+//  Serial.print("Distance 1: ");
+//  Serial.print(us_distance[0]);
+//  Serial.print(", Distance 2: ");
+//  Serial.println(us_distance[1]);
 
   ////////////////////////////////////////////////////////////////////////
   // Motor Calculations
   ////////////////////////////////////////////////////////////////////////
-  // Datasheet says 1us is the lowest delay for the high pulse
-  // 640us was the lowest delay I could do for the low pulse
-  Serial.println("Slow Spin");
-  for (int x = 0; x < 200; x++){
-    digitalWrite(rightMotorStep, HIGH);  
-    delayMicroseconds(200); 
-    digitalWrite(rightMotorStep, LOW);  
-    delayMicroseconds(1000); 
-  }
-  delay(1000);
-
-  Serial.println("Fast Spin");
-  for (int x = 0; x < 200; x++){
-    digitalWrite(leftMotorStep, HIGH);  
-    delayMicroseconds(200); 
-    digitalWrite(leftMotorStep, LOW);  
-    delayMicroseconds(1000); 
-  }
-  delay(1000);
-<<<<<<< HEAD
+  // Get the PID output value
+  calculate_PID();
+  //
   
-//  calculate_PID();
-
-  ////////////////////////////////////////////////////////////////////////
-  // Motor Calculations
-  ////////////////////////////////////////////////////////////////////////
-
-=======
->>>>>>> cc4d0a2cd9747121d71262a9ae4310cf36668d71
+//  for (int x = 10; x < 30; x ++)throttle_left_motor = x;
+//  for (int x = 10; x < 200; x ++)throttle_right_motor = x;
+  throttle_left_motor = 65;
+  throttle_right_motor = -throttle_left_motor;
+  Serial.print("Left Memory: ");
+  Serial.print(throttle_left_motor_memory);
+  Serial.print(", Right Memory: ");
+  Serial.println(throttle_right_motor_memory);
 
   // Control the time of each cycle to be 4 milliseconds.
   while(micros() - cycle_timer < 4000);
@@ -150,10 +133,43 @@ void loop() {
 ////////////////////////////////////////////////////////////////////////
 // Send Motor Signals
 ////////////////////////////////////////////////////////////////////////
+// Run this interrupt every 20us.
 ISR(TIMER2_COMPA_vect){
-  // Add motor signals
-  // Left Motor
+  // Add motor signals.  Working range - 65 to 400 cycles.
+  // Arduino ports B - 0-7, D - 8-13
+  // Left Motor - step 2, dir 3
+  throttle_counter_left_motor ++; // Increment the memory variable by 1.
+  if(throttle_counter_left_motor > throttle_left_motor_memory){ // Check if the motor throttle counter is greater than the memory variable.
+    throttle_counter_left_motor = 0; // Reset throttle counter variable to 0.
+    throttle_left_motor_memory = throttle_left_motor; // Set new memory variable to the left motor throttle that was calculated.
+    if(throttle_left_motor_memory < 0){ // Check if the memory variable is negative.
+      PORTD &= 0b11110111; // Reverse direction of the motor by setting dir pin (3) LOW.
+      throttle_left_motor_memory *= -1; // Set the memory variable to positive.
+    }
+    else PORTD |= 0b00001000; // Set dir pin (3) HIGH.
+  }
+  else if(throttle_counter_left_motor == 1){
+    PORTD |= 0b00000100; // Set step pin (2) to HIGH
+  } 
+  else if(throttle_counter_left_motor == 2){
+    PORTD &= 0b00000100; // Set step pin (2) to LOW
+  }
   
-  // Right Motor
-  
+  // Right Motor - step 4, dir 5
+  throttle_counter_right_motor ++; // Increment the memory variable by 1.
+  if(throttle_counter_right_motor > throttle_right_motor_memory){ // Check if the motor throttle counter is greater than the memory variable.
+    throttle_counter_right_motor = 0; // Reset throttle counter variable to 0.
+    throttle_right_motor_memory = throttle_right_motor; // Set new memory variable to the right motor throttle that was calculated.
+    if(throttle_right_motor_memory < 0){ // Check if the memory variable is negative.
+      PORTD &= 0b11011111; // Reverse direction of the motor by setting dir pin (5) LOW.
+      throttle_right_motor_memory *= -1; // Set the memory variable to positive.
+    }
+    else PORTD |= 0b00100000; // Set dir pin (5) HIGH.
+  }
+  else if(throttle_counter_right_motor == 1){
+    PORTD |= 0b00010000; // Set step pin (4) to HIGH
+  } 
+  else if(throttle_counter_right_motor == 2){
+    PORTD &= 0b00010000; // Set step pin (4) to LOW
+  }
 }
