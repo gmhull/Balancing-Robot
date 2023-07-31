@@ -9,6 +9,7 @@ byte eeprom_data[36];
 int start;
 unsigned long cycle_timer;
 float max_angle = 30;
+bool debug = true;
 
 // Gyro / Accelerometer Variables
 const int gyro_address = 0x68;
@@ -18,6 +19,7 @@ float acc_X, acc_Y, acc_Z;
 float gyro_X_cal, gyro_Y_cal, gyro_Z_cal;
 int temperature;
 int gyro_cal_int;
+float angle_acc angle_gyro;
 
 // PID Variables
 float pid_i_mem, pid_error_temp, pid_last_d_error;
@@ -76,14 +78,32 @@ void loop() {
    * convert output to motor throttles
    * send the motor signals to run wheels
   */
-  
+  if (debug == true) {
+    update_PID_inputs()
+  }
   ////////////////////////////////////////////////////////////////////////
   // Angle Calculations
   ////////////////////////////////////////////////////////////////////////
   read_gyro();
 
-//  angle = 
+  angle_acc = atan(acc_Y/sqrt(acc_X**2 + acc_Z**2))*57.296; // Calculate angle and convert to degrees.
 
+
+  // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
+  if (start == 0 && abs(angle_acc) < 0.5) {
+    angle_gyro = angle_acc;
+    start = 1;
+  }
+  // Stop the robot if it tips past the max angle.  Reset PID values to 0.
+  if (start == 1 && abs(angle_gyro) > max_angle) {
+    balancing_setpoint = 0;
+    pid_i_mem = 0;
+    pid_output = 0;
+    start = 0;
+  }
+
+  angle_gyro = angle_gyro * 0.9996 + angle_acc * 0.0004;
+  
 //  Serial.print("Acc X: ");
 //  Serial.print(acc_X/8192);
 //  Serial.print(", Acc Y: ");
@@ -100,7 +120,7 @@ void loop() {
   ////////////////////////////////////////////////////////////////////////
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
-//  send_signal(0);
+  // send_signal(0);
 //  us_distance[0] = receive_signal(0);
 //  send_signal(1);
 //  us_distance[1] = receive_signal(1);
