@@ -5,8 +5,8 @@ void send_signal(int sensor_num) {
 }
 
 float receive_signal(int sensor_num) {
-  float time = pulseIn(echoPin[sensor_num], HIGH);
-  float distance = (0.034 * time) / 2.;
+  float echo_time = pulseIn(echoPin[sensor_num], HIGH);
+  float distance = (0.034 * echo_time) / 2.;
   
   return distance;
 }
