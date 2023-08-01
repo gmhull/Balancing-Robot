@@ -15,14 +15,14 @@ float acc_X, acc_Y, acc_Z;
 float gyro_X_cal, gyro_Y_cal, gyro_Z_cal;
 int temperature;
 int gyro_cal_int;
-float angle_acc angle_gyro;
+float angle_acc, angle_gyro;
 
 // PID Variables
 float pid_p_gain = 10;
 float pid_i_gain = 1;
 float pid_d_gain = 15;
-#define pid_max = 400;
-#define max_angle = 30;
+#define pid_max 400
+#define max_angle 30
 float pid_i_mem, pid_error_temp, pid_last_d_error;
 float pid_angle_input, balancing_setpoint, pid_setpoint;
 float pid_output;
@@ -91,7 +91,7 @@ void loop() {
   read_gyro();
 
   // Calculate upright angle using accelerometer data.
-  angle_acc = atan(acc_Y/sqrt(acc_X**2 + acc_Z**2))*57.296; // Calculate angle and convert to degrees.
+  angle_acc = asin((float)acc_X) * 57.296; // Calculate angle and convert to degrees.
 
   // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
   if (start == 0 && abs(angle_acc) < 0.5) {
