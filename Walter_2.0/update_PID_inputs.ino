@@ -4,6 +4,7 @@ void update_PID_inputs() {
   // Run when an input is sent and the robot is not active.
   if (start == 0 && Serial.available()){
     input_byte = Serial.read();
+    input_counter = 0;
     if (toLowerCase(input_byte) == "p") {
       // Change PID p gain to input value
       Serial.print("Change the P gain value from ");
@@ -41,6 +42,8 @@ void update_PID_inputs() {
       } else Serial.println("Entry is not valid. Enter a positive number.");
     }
   }
+  if (input_counter <= 25) input_counter ++;
+  else input_byte = 0x00;
 }
 
 void print_pid_vals() {
