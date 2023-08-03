@@ -36,11 +36,11 @@ void init_gyro(){
   Wire.write(0x00);
   Wire.endTransmission();
   
-  // Set the full scale of the gyro. Writing 0x08 to this registry sets the gyro scale to +/-500deg/s.
-  // The data sheet says we need to divide the raw value by 65.5 to get the real values.
+  // Set the full scale of the gyro. Writing 0x08 to this registry sets the gyro scale to +/-250deg/s.
+  // The data sheet says we need to divide the raw value by 131 to get the real values.
   Wire.beginTransmission(gyro_address);
   Wire.write(0x1B);
-  Wire.write(0x08);
+  Wire.write(0x00);
   Wire.endTransmission();
   
   // Set the full scale of the accelerometer. Writing 0x08 to this registry sets the accelerometer scale to +/-4g

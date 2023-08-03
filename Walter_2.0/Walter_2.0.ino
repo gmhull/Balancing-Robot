@@ -99,14 +99,15 @@ void loop() {
   Serial.print(start);
   Serial.print(" - ");
 //  Serial.println(angle_acc);
+  
   // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
   if (start == 0 && angle_acc < 0.5 && angle_acc > -0.5) {
     angle_gyro = angle_acc;
     start = 1;
   }
 
-  // Convert raw gyro data by dividing by 65.5.  Multiply by 0.004 to factor in the 4 ms cycle time.
-  angle_gyro += (gyro_pitch / 65.5) * 0.004;
+  // Convert raw gyro data by dividing by 131.  Multiply by 0.004 to factor in the 4 ms cycle time.
+  angle_gyro += (gyro_pitch / 131) * 0.004;
 
   // Use the accelerometer angle to correct drift from gyro.
   angle_gyro = angle_gyro * 0.9996 + angle_acc * 0.0004;
@@ -120,11 +121,11 @@ void loop() {
 //    Serial.print(", Acc Z: ");
 //    Serial.println(acc_Z/8192);
 //    Serial.print("Gyro Roll: ");
-//    Serial.print(gyro_roll/65.5);
+//    Serial.print(gyro_roll/131);
 //    Serial.print(", Gyro Pitch: ");
-//    Serial.print(gyro_pitch/65.5);
+//    Serial.print(gyro_pitch/131);
 //    Serial.print(", Gyro Yaw: ");
-//    Serial.println(gyro_yaw/65.5);
+//    Serial.println(gyro_yaw/131);
   }
 
   ////////////////////////////////////////////////////////////////////////
