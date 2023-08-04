@@ -1,9 +1,11 @@
 #include <Wire.h>
+#include <NewPing.h>
 
 int start;
 unsigned long cycle_timer;
 bool remote_controlled = false;
 bool debug = true;
+int test = 1;
 
 // Gyro / Accelerometer Variables
 const int gyro_address = 0x68;
@@ -35,9 +37,14 @@ int left_motor, throttle_counter_left_motor, throttle_left_motor_memory, throttl
 int right_motor, throttle_counter_right_motor, throttle_right_motor_memory, throttle_right_motor;
 
 // Ultrasonic Variables
-const int trigPin[2] = {8, 10};
-const int echoPin[2] = {9, 11};
-float us_distance[2];
+#define SONAR_NUM 2
+#define MAX_DISTANCE 200
+NewPing sonar[SONAR_NUM] = {
+  NewPing(8, 9, MAX_DISTANCE);
+  NewPing(10, 11, MAX_DISTANCE);
+}
+int sonar_count;
+float sonar_dist[SONAR_NUM];
 
 // Receiver Variables
 int input_counter;
@@ -96,8 +103,8 @@ void loop() {
   // Calculate upright angle using accelerometer data.
   angle_acc = asin((float)acc_X) * 57.296; // Calculate angle and convert to degrees.
 
-  Serial.print(start);
-  Serial.print(" - ");
+//  Serial.print(start);
+//  Serial.print(" - ");
 //  Serial.println(angle_acc);
   
   // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
@@ -131,17 +138,20 @@ void loop() {
   ////////////////////////////////////////////////////////////////////////
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
-  // Send and receive signals from the ultrasonic sensors.
-//  send_signal(0);
-//  us_distance[0] = receive_signal(0);
-//  send_signal(1);
-//  us_distance[1] = receive_signal(1);
-  
-  if (debug) {
-//    Serial.print("Distance 1: ");
-//    Serial.print(us_distance[0]);
-//    Serial.print(", Distance 2: ");
-//    Serial.println(us_distance[1]);
+  // Each sonar sensor is pinged once every 12 cycles (48 ms).
+  sonar_count ++;
+  if (sonar_count <= 2) {
+    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm()
+    
+    if (debug) {
+      Serial.print("Sonar sensor ");
+      Serial.print(sonar_count);
+      Serial.print(": ");
+      Serial.print(sonar_dist[sonar_count]);
+      Serial.println(" cm.");
+    }
+  } else if (sonar_count == 12) {
+    sonar_count = 0;
   }
   
   ////////////////////////////////////////////////////////////////////////
@@ -205,10 +215,12 @@ void loop() {
   throttle_right_motor = right_motor;
   
   if (debug) {
-    Serial.print("Left Motor: ");
-    Serial.print(throttle_left_motor);
-    Serial.print(", Right Memory: ");
-    Serial.println(throttle_right_motor);
+//    Serial.print("Left Motor: ");
+//    Serial.print(digitalRead(leftMotorDir));
+//    Serial.print(", Left Memory: ");
+//    Serial.print(test);
+//    Serial.print(", Throttle: ");
+//    Serial.println(throttle_left_motor);
   }
 
   // Control the time of each cycle to be 4 milliseconds.
@@ -232,11 +244,11 @@ ISR(TIMER2_COMPA_vect){
     if(throttle_left_motor_memory < 0){                             // Check if the memory variable is negative.
       PORTD &= 0b11110111;                                          // Reverse direction of the motor by setting dir pin (3) LOW.
       throttle_left_motor_memory *= -1;                             // Set the memory variable to positive.
-    }
-    else PORTD |= 0b00001000;                                       // Set dir pin (3) HIGH.
+    } 
+    else PORTD |= 0b00001000;                                     // Set dir pin (3) HIGH.
   }
   else if(throttle_counter_left_motor == 1) PORTD |= 0b00000100;    // Set step pin (2) to HIGH
-  else if(throttle_counter_left_motor == 2) PORTD &= 0b00000100;    // Set step pin (2) to LOW
+  else if(throttle_counter_left_motor == 2) PORTD &= 0b11111011;    // Set step pin (2) to LOW
   
   // Right Motor - step 4, dir 5
   throttle_counter_right_motor ++;                                  // Increment the memory variable by 1.
@@ -244,11 +256,11 @@ ISR(TIMER2_COMPA_vect){
     throttle_counter_right_motor = 0;                               // Reset throttle counter variable to 0.
     throttle_right_motor_memory = throttle_right_motor;             // Set new memory variable to the right motor throttle that was calculated.
     if(throttle_right_motor_memory < 0){                            // Check if the memory variable is negative.
-      PORTD |= 0b11011111;                                          // Reverse direction of the motor by setting dir pin (5) LOW.
+      PORTD |= 0b00100000;                                          // Reverse direction of the motor by setting dir pin (5) LOW.
       throttle_right_motor_memory *= -1;                            // Set the memory variable to positive.
-    }
-    else PORTD &= 0b00100000;                                       // Set dir pin (5) HIGH.
+    } 
+    else PORTD &= 0b11011111;                                     // Set dir pin (5) HIGH.
   }
   else if(throttle_counter_right_motor == 1) PORTD |= 0b00010000;   // Set step pin (4) to HIGH
-  else if(throttle_counter_right_motor == 2) PORTD &= 0b00010000;   // Set step pin (4) to LOW
+  else if(throttle_counter_right_motor == 2) PORTD &= 0b11101111;   // Set step pin (4) to LOW
 }
