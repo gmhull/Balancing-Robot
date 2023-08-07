@@ -36,15 +36,17 @@ float pid_output, pid_output_left, pid_output_right;
 int left_motor, throttle_counter_left_motor, throttle_left_motor_memory, throttle_left_motor;
 int right_motor, throttle_counter_right_motor, throttle_right_motor_memory, throttle_right_motor;
 
-// Ultrasonic Variables
-#define SONAR_NUM 2
-#define MAX_DISTANCE 200
+// Sonar Variables
+#define SONAR_NUM 2             // Number of sonar sensors
+#define MAX_DISTANCE 200        // Max calculated distance from sonar
+#define CLOSE_DIST 15           // Safety margin for objects being too close (cm)
+// Create an object for each sensor.  Give trigger pin, echo pin, and max distance for each
 NewPing sonar[SONAR_NUM] = {
-  NewPing(8, 9, MAX_DISTANCE);
-  NewPing(10, 11, MAX_DISTANCE);
-}
+  NewPing(8, 9, MAX_DISTANCE),  // Front Sonar = 0
+  NewPing(10, 11, MAX_DISTANCE) // Rear Sonar = 1
+};
 int sonar_count;
-float sonar_dist[SONAR_NUM];
+float sonar_dist[SONAR_NUM];    // Array to store the front and back distances
 
 // Receiver Variables
 int input_counter;
@@ -69,10 +71,6 @@ void setup() {
   pinMode(leftMotorDir, OUTPUT);
   pinMode(rightMotorStep, OUTPUT);
   pinMode(rightMotorDir, OUTPUT);
-  pinMode(trigPin[0], OUTPUT);
-  pinMode(trigPin[1], OUTPUT);
-  pinMode(echoPin[0], INPUT);
-  pinMode(echoPin[1], INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set up the MPU6050 chip
@@ -81,11 +79,14 @@ void setup() {
 
   Serial.println("Ready");
   start = 0;
-  cycle_timer = micros() + 4000;
+  cycle_timer = micros();
 }
 
 
 void loop() {
+  // Reset the LED to off state
+  digitalWrite(LED_BUILTIN, LOW);
+  
 //  if (debug) {
 //    update_PID_inputs();
 //  }
@@ -140,18 +141,18 @@ void loop() {
   ////////////////////////////////////////////////////////////////////////
   // Each sonar sensor is pinged once every 12 cycles (48 ms).
   sonar_count ++;
-  if (sonar_count <= 2) {
-    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm()
+  if (sonar_count < SONAR_NUM) {
+    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
     
     if (debug) {
-      Serial.print("Sonar sensor ");
-      Serial.print(sonar_count);
-      Serial.print(": ");
-      Serial.print(sonar_dist[sonar_count]);
-      Serial.println(" cm.");
+//      Serial.print("Sonar sensor ");
+//      Serial.print(sonar_count);
+//      Serial.print(": ");
+//      Serial.print(sonar_dist[sonar_count]);
+//      Serial.println(" cm.");
     }
   } else if (sonar_count == 12) {
-    sonar_count = 0;
+    sonar_count = -1;  // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
   }
   
   ////////////////////////////////////////////////////////////////////////
@@ -167,27 +168,45 @@ void loop() {
 
   // Move the robot depending on the remote input.
 //  if (remote_controlled) {
-//    if (moving forward && nothing in front) {
+//    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
 //      if (pid_setpoint < 2) pid_setpoint += 0.05;
 //      if (pid_output < target_speed) pid_setpoint += 0.05;
 //    }
-//    if (moving backward && nothing in back) {
+//    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
 //      if (pid_setpoint > -2) pid_setpoint -= 0.05;
 //      if (pid_output > -target_speed) pid_setpoint -= 0.05;
 //    }
-//    if (turning left) {
+//    else if (turning left) {
 //      throttle_left_motor -= turning_speed;
 //      throttle_right_motor += turning_speed;
 //    }
-//    if (turning right) {
+//    else if (turning right) {
 //      throttle_left_motor += turning_speed;
 //      throttle_right_motor -= turning_speed;
 //    }
-//    if (no signal) {
+//    else {    // No signal
 //      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
 //      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
 //      else pid_setpoint = 0;
+//    }
 //  }
+
+  // Move the robot away if something gets too close to it
+  if (!remote_controlled) {
+    if (sonar_dist[0] < CLOSE_DIST) {                           // Something is in front of the robot
+      if (pid_setpoint > -2) pid_setpoint -= 0.05;              // Start moving backwards
+      if (pid_output > -target_speed) pid_setpoint -= 0.05;
+    }
+    else if (sonar_dist[1] < CLOSE_DIST) {                      // Something is behind the robot
+      if (pid_setpoint < 2) pid_setpoint += 0.05;               // Start moving backwards
+      if (pid_output < target_speed) pid_setpoint += 0.05;
+    }
+    else {                                                      // No signal
+      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
+      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
+      else pid_setpoint = 0;
+    }
+  }
 
   // Adjust self balance point to help robot find its steady point.  Only activate if the robot is not being commanded.
   if (pid_setpoint == 0) {
@@ -214,19 +233,11 @@ void loop() {
   throttle_left_motor = left_motor;
   throttle_right_motor = right_motor;
   
-  if (debug) {
-//    Serial.print("Left Motor: ");
-//    Serial.print(digitalRead(leftMotorDir));
-//    Serial.print(", Left Memory: ");
-//    Serial.print(test);
-//    Serial.print(", Throttle: ");
-//    Serial.println(throttle_left_motor);
-  }
 
-  // Control the time of each cycle to be 4 milliseconds.
-//  if (micros() > cycle_timer) Serial.println(micros() - cycle_timer);
-  while(cycle_timer > micros());
-  cycle_timer += 4000;
+  // Control the time of each cycle to be 4 milliseconds.  Otherwise the angle calculations will be off.
+  if (micros() - cycle_timer > 4050) digitalWrite(LED_BUILTIN, HIGH);
+  while(micros() - cycle_timer < 4000);
+  cycle_timer = micros();
 }
 
 
