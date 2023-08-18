@@ -1,7 +1,8 @@
 #include <Wire.h>
 #include <NewPing.h>
 
-int start;
+// General Variables
+int start;    // 0 = Stopped, 1 = Active
 unsigned long cycle_timer;
 bool remote_controlled = false;
 bool debug = true;
@@ -47,9 +48,6 @@ NewPing sonar[SONAR_NUM] = {
 };
 int sonar_count;
 float sonar_dist[SONAR_NUM];    // Array to store the front and back distances
-
-// Receiver Variables
-int input_counter;
 
 
 void setup() {
@@ -100,14 +98,14 @@ void loop() {
   // Get gyro data from the MPU6050 chip.
   read_gyro();
 
-  // Set the max acceleration value to 1
+  // Set the max acceleration value to 1/-
   acc_Z /= 8192;                              // Convert raw acceleration data to real value.
   if (acc_Z > 1) acc_Z = 1;
   if (acc_Z < -1) acc_Z = -1;
   
   // Calculate upright angle using accelerometer data.
   angle_acc = asin((float)acc_Z) * 57.296;    // Calculate angle and convert to degrees.
-  angle_acc -= angle_acc_offset;
+  angle_acc -= angle_acc_offset;              // Subtract the angle offset based on how the chip is positioned.
 
   // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
   if (start == 0 && angle_acc < 0.5 && angle_acc > -0.5) {
@@ -208,12 +206,13 @@ void loop() {
   else if (pid_output_right < 0) right_motor = -400 - pid_output_right;
   else right_motor = 0;
 
+  // Copy final motor calculations into throttle variables for the motor pulse timer to use.
   throttle_left_motor = left_motor;
   throttle_right_motor = right_motor;
   
 
   // Control the time of each cycle to be 4 milliseconds.  Otherwise the angle calculations will be off.
-  if (micros() - cycle_timer > 4050) digitalWrite(LED_BUILTIN, HIGH);
+  if (micros() - cycle_timer > 4050) digitalWrite(LED_BUILTIN, HIGH);  // Flash the LED if the cycle is longer than expected
   while(micros() - cycle_timer < 4000);
   cycle_timer = micros();
 }
@@ -224,7 +223,6 @@ void loop() {
 ////////////////////////////////////////////////////////////////////////
 // Run this interrupt every 20us.
 ISR(TIMER2_COMPA_vect){
-  // Arduino ports B - 0-7, D - 8-13
   // Left Motor - step 2, dir 3
   throttle_counter_left_motor ++;                                   // Increment the memory variable by 1.
   if(throttle_counter_left_motor > throttle_left_motor_memory){     // Check if the motor throttle counter is greater than the memory variable.
