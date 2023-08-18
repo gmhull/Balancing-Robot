@@ -4,8 +4,7 @@
 int start;
 unsigned long cycle_timer;
 bool remote_controlled = false;
-// 0 = Off, 1 = PID Tuning, 2 = Angle/Gyro Readings, 3 = MPU data, 4 = Sonar Sensors, 5 = PID Outputs, 6 = Motor Outputs
-int debug = 0;
+bool debug = true;
 
 // Gyro / Accelerometer Variables
 const int gyro_address = 0x68;
@@ -93,9 +92,8 @@ void loop() {
   // Reset the LED to off state
   digitalWrite(LED_BUILTIN, LOW);
   
- if (debug == 1) {
-   update_PID_inputs();
- }
+ if (debug) debug_comments();
+
   ////////////////////////////////////////////////////////////////////////
   // Angle Calculations
   ////////////////////////////////////////////////////////////////////////
@@ -111,14 +109,6 @@ void loop() {
   angle_acc = asin((float)acc_Z) * 57.296;    // Calculate angle and convert to degrees.
   angle_acc -= angle_acc_offset;
 
-  if (debug == 2) {
-    Serial.print(start);
-    Serial.print(" - ");
-    Serial.print(angle_acc);
-    Serial.print(" - ");
-    Serial.println(angle_gyro);
-  }
-  
   // Start the robot.  Set gyro angle equal to the accelerometer angle at the start.
   if (start == 0 && angle_acc < 0.5 && angle_acc > -0.5) {
     angle_gyro = angle_acc;
@@ -131,24 +121,6 @@ void loop() {
   // Use the accelerometer angle to correct drift from gyro.
   angle_gyro = angle_gyro * 0.9996 + angle_acc * 0.0004;
 
-  if (debug == 3) {
-    // Print out acceleration and gyro data.
-    Serial.print("Acc X: ");
-    Serial.print(acc_X/8192);
-    Serial.print(", Acc Y: ");
-    Serial.print(acc_Y/8192);
-    Serial.print(", Acc Z: ");
-    Serial.print(acc_Z);
-    Serial.print(", Gyro Roll: ");
-    Serial.print(gyro_roll/131);
-    Serial.print(", Gyro Pitch: ");
-    Serial.print(gyro_pitch/131);
-    Serial.print(", Gyro Yaw: ");
-    Serial.print(gyro_yaw/131);
-    Serial.print(", Final Angle: ");
-    Serial.println(angle_gyro);
-  }
-
   ////////////////////////////////////////////////////////////////////////
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
@@ -156,19 +128,9 @@ void loop() {
   sonar_count ++;
   if (sonar_count < SONAR_NUM) {
     sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
-    
-    if (debug == 4) {
-      Serial.print("Sonar sensor ");
-      Serial.print(sonar_count);
-      Serial.print(": ");
-      Serial.print(sonar_dist[sonar_count]);
-      Serial.print(" cm");
-      // Keep everything on one line
-      if (sonar_count == SONAR_NUM-1) Serial.print("\n");
-      else if (sonar_count < SONAR_NUM) Serial.print(" / ");
-    }
   } else if (sonar_count == 12) {
-    sonar_count = -1;  // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
+    // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
+    sonar_count = -1;  
   }
   
   ////////////////////////////////////////////////////////////////////////
@@ -230,15 +192,6 @@ void loop() {
     if (pid_output > 0) balancing_setpoint -= 0.0015;
   }
 
-  if (debug == 5) {
-    Serial.print("PID Output: ");
-    Serial.print(pid_output);
-    Serial.print(", Balancing Setpoint: ");
-    Serial.print(balancing_setpoint);
-    Serial.print(", PID Error: ");
-    Serial.println(pid_error_temp);
-  }
-
   // Compensate for stepper motors non-linear behavior.
   if (pid_output_left > 0) pid_output_left = 405 - (1 / (pid_output_left + 9)) * 5500;
   else if (pid_output_left < 0) pid_output_left = -405 - (1 / (pid_output_left - 9)) * 5500;
@@ -257,11 +210,6 @@ void loop() {
 
   throttle_left_motor = left_motor;
   throttle_right_motor = right_motor;
-
-  if (debug == 6) {
-    Serial.print("Left Throttle: ");
-    Serial.println(throttle_left_motor);
-  }
   
 
   // Control the time of each cycle to be 4 milliseconds.  Otherwise the angle calculations will be off.
