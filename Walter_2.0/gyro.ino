@@ -55,6 +55,8 @@ void init_gyro(){
   Wire.write(0x1A);
   Wire.write(0x03);
   Wire.endTransmission();
+
+  Serial.println("Gyro Initialized");
 }
 
 void calibrate_gyro (){
@@ -70,6 +72,7 @@ void calibrate_gyro (){
   gyro_axis_cal[2] /= gyro_cal_max;
   gyro_axis_cal[3] /= gyro_cal_max;
 
+  Serial.print("Gyro Calibrated -/- ");
   Serial.print(gyro_axis_cal[1]);
   Serial.print(" - ");
   Serial.print(gyro_axis_cal[2]);
