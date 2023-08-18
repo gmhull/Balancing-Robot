@@ -14,7 +14,7 @@ void read_gyro (){
   gyro_axis[2] = Wire.read()<<8|Wire.read();
   gyro_axis[3] = Wire.read()<<8|Wire.read();
 
-  if(gyro_cal_int = 2000){
+  if(gyro_cal_int == gyro_cal_max){
     gyro_axis[1] -= gyro_axis_cal[1];
     gyro_axis[2] -= gyro_axis_cal[2];
     gyro_axis[3] -= gyro_axis_cal[3];
@@ -58,15 +58,21 @@ void init_gyro(){
 }
 
 void calibrate_gyro (){
-  for (gyro_cal_int = 0; gyro_cal_int < 2000 ; gyro_cal_int ++){
-    if(gyro_cal_int % 20 == 0)digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  for (gyro_cal_int = 0; gyro_cal_int < gyro_cal_max ; gyro_cal_int++){
+    if(gyro_cal_int % 50 == 0)digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     read_gyro();
     gyro_axis_cal[1] += gyro_axis[1];
     gyro_axis_cal[2] += gyro_axis[2];
     gyro_axis_cal[3] += gyro_axis[3];
   }
   // Divide by the number of iterations to get the calibration
-  gyro_axis_cal[1] /= 2000;
-  gyro_axis_cal[2] /= 2000;
-  gyro_axis_cal[3] /= 2000;
+  gyro_axis_cal[1] /= gyro_cal_max;
+  gyro_axis_cal[2] /= gyro_cal_max;
+  gyro_axis_cal[3] /= gyro_cal_max;
+
+  Serial.print(gyro_axis_cal[1]);
+  Serial.print(" - ");
+  Serial.print(gyro_axis_cal[2]);
+  Serial.print(" - ");
+  Serial.println(gyro_axis_cal[3]);
 }
