@@ -20,9 +20,9 @@ void read_gyro (){
     gyro_axis[3] -= gyro_axis_cal[3];
   }
 
-  gyro_roll = gyro_axis[1]; //gyro_axis[eeprom_data[6] & 0b00000011];
+  gyro_yaw = gyro_axis[1]; //gyro_axis[eeprom_data[6] & 0b00000011];
   gyro_pitch = gyro_axis[2]; //gyro_axis[eeprom_data[7] & 0b00000011];
-  gyro_yaw = gyro_axis[3]; //gyro_axis[eeprom_data[8] & 0b00000011];
+  gyro_roll = gyro_axis[3]; //gyro_axis[eeprom_data[8] & 0b00000011];
   
   acc_X = acc_axis[1]; //acc_axis[eeprom_data[7] & 0b00000011];
   acc_Y = acc_axis[2]; //acc_axis[eeprom_data[6] & 0b00000011];
@@ -66,6 +66,7 @@ void calibrate_gyro (){
     gyro_axis_cal[1] += gyro_axis[1];
     gyro_axis_cal[2] += gyro_axis[2];
     gyro_axis_cal[3] += gyro_axis[3];
+    delayMicroseconds(3700);
   }
   // Divide by the number of iterations to get the calibration
   gyro_axis_cal[1] /= gyro_cal_max;

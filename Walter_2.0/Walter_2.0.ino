@@ -3,9 +3,10 @@
 
 // General Variables
 int start;    // 0 = Stopped, 1 = Active
-unsigned long cycle_timer;
+unsigned long cycle_timer, test_timer;
 bool remote_controlled = false;
 bool debug = true;
+int test_timer_int;
 
 // Gyro / Accelerometer Variables
 const int gyro_address = 0x68;
@@ -19,9 +20,9 @@ int gyro_cal_max = 600;
 float angle_acc, angle_gyro, angle_acc_offset;
 
 // PID Variables
-float pid_p_gain = 10;
-float pid_i_gain = 0;
-float pid_d_gain = 15;
+float pid_p_gain = 15;
+float pid_i_gain = 1.5;
+float pid_d_gain = 30;
 #define pid_max 400
 #define max_angle 30
 float pid_i_mem, pid_error_temp, pid_last_d_error;
@@ -49,6 +50,9 @@ NewPing sonar[SONAR_NUM] = {
 int sonar_count;
 float sonar_dist[SONAR_NUM];    // Array to store the front and back distances
 
+// Receiver Variables
+int input_counter;
+
 
 void setup() {
   Serial.begin(57600);
@@ -75,7 +79,7 @@ void setup() {
   calibrate_gyro();
   
   // Angle offset found by reading the gyro angle when the robot is sitting on flat ground
-  angle_acc_offset = 3.6;
+  angle_acc_offset = -3.8;
 
   // Wait 0.5 seconds before starting
   delay(500);
@@ -98,7 +102,8 @@ void loop() {
   // Get gyro data from the MPU6050 chip.
   read_gyro();
 
-  // Set the max acceleration value to 1/-
+  // Set the max acceleration value to 1/-1
+  acc_Z *= -1;                                // Compensate for gyro orientation.
   acc_Z /= 8192;                              // Convert raw acceleration data to real value.
   if (acc_Z > 1) acc_Z = 1;
   if (acc_Z < -1) acc_Z = -1;
@@ -123,13 +128,13 @@ void loop() {
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
   // Each sonar sensor is pinged once every 12 cycles (48 ms).
-  sonar_count ++;
-  if (sonar_count < SONAR_NUM) {
-    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
-  } else if (sonar_count == 12) {
-    // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
-    sonar_count = -1;  
-  }
+//  sonar_count ++;
+//  if (sonar_count < SONAR_NUM) {
+//    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
+//  } else if (sonar_count == 12) {
+//    // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
+//    sonar_count = -1;  
+//  }
   
   ////////////////////////////////////////////////////////////////////////
   // Motor Calculations
@@ -143,46 +148,46 @@ void loop() {
 
 
   // Move the robot depending on the remote input.
-//  if (remote_controlled) {
-//    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
-//      if (pid_setpoint < 2) pid_setpoint += 0.05;
-//      if (pid_output < target_speed) pid_setpoint += 0.05;
+  if (remote_controlled) {
+    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
+      if (pid_setpoint < 2) pid_setpoint += 0.05;
+      if (pid_output < target_speed) pid_setpoint += 0.05;
+    }
+    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
+      if (pid_setpoint > -2) pid_setpoint -= 0.05;
+      if (pid_output > -target_speed) pid_setpoint -= 0.05;
+    }
+    else if (turning left) {
+      throttle_left_motor -= turning_speed;
+      throttle_right_motor += turning_speed;
+    }
+    else if (turning right) {
+      throttle_left_motor += turning_speed;
+      throttle_right_motor -= turning_speed;
+    }
+    else {    // No signal
+      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
+      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
+      else pid_setpoint = 0;
+    }
+  }
+
+  // Move the robot away if something gets too close to it
+//  if (!remote_controlled && start == 1) {
+//    if (sonar_dist[0] < CLOSE_DIST) {                           // Something is in front of the robot
+//      if (pid_setpoint > -2) pid_setpoint -= 0.025;             // Start moving backwards
+//      if (pid_output > -target_speed) pid_setpoint -= 0.025;
 //    }
-//    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
-//      if (pid_setpoint > -2) pid_setpoint -= 0.05;
-//      if (pid_output > -target_speed) pid_setpoint -= 0.05;
+//    else if (sonar_dist[1] < CLOSE_DIST) {                      // Something is behind the robot
+//      if (pid_setpoint < 2) pid_setpoint += 0.025;              // Start moving backwards
+//      if (pid_output < target_speed) pid_setpoint += 0.025;
 //    }
-//    else if (turning left) {
-//      throttle_left_motor -= turning_speed;
-//      throttle_right_motor += turning_speed;
-//    }
-//    else if (turning right) {
-//      throttle_left_motor += turning_speed;
-//      throttle_right_motor -= turning_speed;
-//    }
-//    else {    // No signal
-//      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
-//      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
+//    else {                                                      // No signal
+//      if (pid_setpoint < -0.5) pid_setpoint += 0.025;
+//      else if (pid_setpoint > 0.5) pid_setpoint -= 0.025;
 //      else pid_setpoint = 0;
 //    }
 //  }
-
-  // Move the robot away if something gets too close to it
- // if (!remote_controlled && start == 1) {
- //   if (sonar_dist[0] < CLOSE_DIST) {                           // Something is in front of the robot
- //     if (pid_setpoint > -2) pid_setpoint -= 0.025;             // Start moving backwards
- //     if (pid_output > -target_speed) pid_setpoint -= 0.025;
- //   }
- //   else if (sonar_dist[1] < CLOSE_DIST) {                      // Something is behind the robot
- //     if (pid_setpoint < 2) pid_setpoint += 0.025;              // Start moving backwards
- //     if (pid_output < target_speed) pid_setpoint += 0.025;
- //   }
- //   else {                                                      // No signal
- //     if (pid_setpoint < -0.5) pid_setpoint += 0.025;
- //     else if (pid_setpoint > 0.5) pid_setpoint -= 0.025;
- //     else pid_setpoint = 0;
- //   }
- // }
 
   // Adjust self balance point to help robot find its steady point.  Only activate if the robot is not being commanded.
   if (pid_setpoint == 0) {

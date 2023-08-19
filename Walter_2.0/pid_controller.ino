@@ -1,7 +1,7 @@
 void calculate_PID(){
   // Calculate PID
   pid_error_temp = angle_gyro - balancing_setpoint - pid_setpoint;
-//  if(pid_output > 10 || pid_output < -10) pid_error_temp += pid_output * 0.015;
+  if(pid_output > 10 || pid_output < -10) pid_error_temp += pid_output * 0.015;
 
   pid_i_mem += pid_i_gain * pid_error_temp;
   if(pid_i_mem > pid_max)pid_i_mem = pid_max;
