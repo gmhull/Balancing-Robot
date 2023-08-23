@@ -1,7 +1,7 @@
 void debug_comments() {
   // 0 = Off, 1 = PID Tuning, 2 = Angle/Gyro Readings, 3 = MPU data, 
   // 4 = Sonar Sensors, 5 = PID Outputs, 6 = Motor Outputs, 7 = Timing
-  int debug_section = 5;
+  int debug_section = 0;
 
   if (debug_section == 1) {
    update_PID_inputs();
@@ -31,14 +31,18 @@ void debug_comments() {
     Serial.println(angle_gyro);
   }
   else if (debug_section == 4) {
-    Serial.print("Sonar sensor ");
-    Serial.print(sonar_count);
-    Serial.print(": ");
-    Serial.print(sonar_dist[sonar_count]);
-    Serial.print(" cm");
-    // Keep everything on one line
-    if (sonar_count == SONAR_NUM-1) Serial.print("\n");
-    else if (sonar_count < SONAR_NUM) Serial.print(" / ");
+    if (sonar_count >= 0 && sonar_count < SONAR_NUM) {
+      Serial.print("Sonar sensor ");
+      Serial.print(sonar_count);
+      Serial.print(": ");
+      Serial.print(sonar_dist[sonar_count]);
+      Serial.print(" cm");
+      Serial.print(", PID Setpoint: ");
+      Serial.print(pid_setpoint);
+      // Keep everything on one line
+      if (sonar_count == SONAR_NUM-1) Serial.print("\n");
+      else Serial.print(" / ");
+    }
   }
   else if (debug_section == 5) {
     Serial.print("PID Output: ");
