@@ -17,7 +17,7 @@ void calculate_PID(){
   if(pid_output < 5 && pid_output > -5)pid_output = 0;
 
   // Stop the robot if it goes past the tipping angle.
-  if (start == 0 || angle_gyro > max_angle || angle_gyro < -max_angle){
+  if (start == 0 || angle_acc > max_angle || angle_acc < -max_angle){
     balancing_setpoint = 0;
     pid_i_mem = 0;
     pid_output = 0;
