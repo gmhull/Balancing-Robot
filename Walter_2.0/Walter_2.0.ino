@@ -94,7 +94,7 @@ void loop() {
   // Reset the LED to off state
   digitalWrite(LED_BUILTIN, LOW);
   
- if (debug) debug_comments();
+  if (debug) debug_comments();
 
   ////////////////////////////////////////////////////////////////////////
   // Angle Calculations
@@ -148,29 +148,29 @@ void loop() {
 
 
   // Move the robot depending on the remote input.
-  if (remote_controlled) {
-    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
-      if (pid_setpoint < 2) pid_setpoint += 0.05;
-      if (pid_output < target_speed) pid_setpoint += 0.05;
-    }
-    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
-      if (pid_setpoint > -2) pid_setpoint -= 0.05;
-      if (pid_output > -target_speed) pid_setpoint -= 0.05;
-    }
-    else if (turning left) {
-      throttle_left_motor -= turning_speed;
-      throttle_right_motor += turning_speed;
-    }
-    else if (turning right) {
-      throttle_left_motor += turning_speed;
-      throttle_right_motor -= turning_speed;
-    }
-    else {    // No signal
-      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
-      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
-      else pid_setpoint = 0;
-    }
-  }
+//  if (remote_controlled) {
+//    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
+//      if (pid_setpoint < 2) pid_setpoint += 0.05;
+//      if (pid_output < target_speed) pid_setpoint += 0.05;
+//    }
+//    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
+//      if (pid_setpoint > -2) pid_setpoint -= 0.05;
+//      if (pid_output > -target_speed) pid_setpoint -= 0.05;
+//    }
+//    else if (turning left) {
+//      throttle_left_motor -= turning_speed;
+//      throttle_right_motor += turning_speed;
+//    }
+//    else if (turning right) {
+//      throttle_left_motor += turning_speed;
+//      throttle_right_motor -= turning_speed;
+//    }
+//    else {    // No signal
+//      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
+//      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
+//      else pid_setpoint = 0;
+//    }
+//  }
 
   // Move the robot away if something gets too close to it
 //  if (!remote_controlled && start == 1) {

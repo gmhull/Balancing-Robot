@@ -1,7 +1,7 @@
 void debug_comments() {
   // 0 = Off, 1 = PID Tuning, 2 = Angle/Gyro Readings, 3 = MPU data, 
   // 4 = Sonar Sensors, 5 = PID Outputs, 6 = Motor Outputs, 7 = Timing
-  int debug_section = 0;
+  int debug_section = 5;
 
   if (debug_section == 1) {
    update_PID_inputs();
