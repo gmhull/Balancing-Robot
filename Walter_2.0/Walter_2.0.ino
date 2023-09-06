@@ -5,7 +5,7 @@
 int start;    // 0 = Stopped, 1 = Active
 unsigned long cycle_timer, test_timer;
 bool remote_controlled = false;
-bool debug = true;
+bool debug = false;
 int test_timer_int;
 
 // Gyro / Accelerometer Variables
@@ -60,13 +60,13 @@ void setup() {
   Wire.begin(); 
 
   // Setup interrupt timer settings
-  TCCR2A = 0;
-  TCCR2B = 0;
-  TIMSK2 |= (1 << OCIE2A);  // Enable Output Compare Match for timer 2. 
+  TCCR0A = 0;
+  TCCR0B = 0;
+  TIMSK0 |= (1 << OCIE0A);  // Enable Output Compare Match for timer 0. 
   // Caluculate the OCR register  with this equation: OCR2A = (speed * 16MHz / prescalar) - 1
-  TCCR2B |= (1 << CS21);    // Prescalar = 8
-  OCR2A = 39;               // 39 = (20us * 16MHz / 8) - 1
-  TCCR2A |= (1 << WGM21);   // Set mode to CTC (clear time on compare)
+  TCCR0B |= (1 << CS01);    // Prescalar = 8
+  OCR0A = 39;               // 39 = (20us * 16MHz / 8) - 1
+  TCCR0A |= (1 << WGM01);   // Set mode to CTC (clear time on compare)
 
   pinMode(leftMotorStep, OUTPUT);
   pinMode(leftMotorDir, OUTPUT);
@@ -227,7 +227,7 @@ void loop() {
 // Send Motor Signals
 ////////////////////////////////////////////////////////////////////////
 // Run this interrupt every 20us.
-ISR(TIMER2_COMPA_vect){
+ISR(TIMER0_COMPA_vect){
   // Left Motor - step 2, dir 3
   throttle_counter_left_motor ++;                                   // Increment the memory variable by 1.
   if(throttle_counter_left_motor > throttle_left_motor_memory){     // Check if the motor throttle counter is greater than the memory variable.
