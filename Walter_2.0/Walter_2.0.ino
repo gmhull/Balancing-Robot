@@ -5,7 +5,7 @@
 int start;    // 0 = Stopped, 1 = Active
 unsigned long cycle_timer, test_timer;
 bool remote_controlled = false;
-bool debug = false;
+bool debug = true;
 int test_timer_int;
 
 // Gyro / Accelerometer Variables
@@ -60,13 +60,13 @@ void setup() {
   Wire.begin(); 
 
   // Setup interrupt timer settings
-  TCCR0A = 0;
-  TCCR0B = 0;
-  TIMSK0 |= (1 << OCIE0A);  // Enable Output Compare Match for timer 0. 
+  TCCR2A = 0;
+  TCCR2B = 0;
+  TIMSK2 |= (1 << OCIE2A);  // Enable Output Compare Match for timer 0. 
   // Caluculate the OCR register  with this equation: OCR2A = (speed * 16MHz / prescalar) - 1
-  TCCR0B |= (1 << CS01);    // Prescalar = 8
-  OCR0A = 39;               // 39 = (20us * 16MHz / 8) - 1
-  TCCR0A |= (1 << WGM01);   // Set mode to CTC (clear time on compare)
+  TCCR2B |= (1 << CS21);    // Prescalar = 8
+  OCR2A = 39;               // 39 = (20us * 16MHz / 8) - 1
+  TCCR2A |= (1 << WGM21);   // Set mode to CTC (clear time on compare)
 
   pinMode(leftMotorStep, OUTPUT);
   pinMode(leftMotorDir, OUTPUT);
@@ -128,13 +128,13 @@ void loop() {
   // Ultrasonic Code
   ////////////////////////////////////////////////////////////////////////
   // Each sonar sensor is pinged once every 12 cycles (48 ms).
-//  sonar_count ++;
-//  if (sonar_count < SONAR_NUM) {
-//    sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
-//  } else if (sonar_count == 12) {
-//    // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
-//    sonar_count = -1;  
-//  }
+  // sonar_count ++;
+  // if (sonar_count < SONAR_NUM) {
+  //   sonar_dist[sonar_count] = sonar[sonar_count].ping_cm();
+  // } else if (sonar_count == 12) {
+  //   // Set to -1 so that when the loop will start at 0 when the sonar_count increments.
+  //   sonar_count = -1;  
+  // }
   
   ////////////////////////////////////////////////////////////////////////
   // Motor Calculations
@@ -148,46 +148,46 @@ void loop() {
 
 
   // Move the robot depending on the remote input.
-//  if (remote_controlled) {
-//    if (moving forward && sonar_dist[0] > CLOSE_DIST) {
-//      if (pid_setpoint < 2) pid_setpoint += 0.05;
-//      if (pid_output < target_speed) pid_setpoint += 0.05;
-//    }
-//    else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
-//      if (pid_setpoint > -2) pid_setpoint -= 0.05;
-//      if (pid_output > -target_speed) pid_setpoint -= 0.05;
-//    }
-//    else if (turning left) {
-//      throttle_left_motor -= turning_speed;
-//      throttle_right_motor += turning_speed;
-//    }
-//    else if (turning right) {
-//      throttle_left_motor += turning_speed;
-//      throttle_right_motor -= turning_speed;
-//    }
-//    else {    // No signal
-//      if (pid_setpoint < -0.5) pid_setpoint += 0.05;
-//      else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
-//      else pid_setpoint = 0;
-//    }
-//  }
+  // if (remote_controlled) {
+  //   if (moving forward && sonar_dist[0] > CLOSE_DIST) {
+  //     if (pid_setpoint < 2) pid_setpoint += 0.05;
+  //     if (pid_output < target_speed) pid_setpoint += 0.05;
+  //   }
+  //   else if (moving backward && sonar_dist[1] > CLOSE_DIST) {
+  //     if (pid_setpoint > -2) pid_setpoint -= 0.05;
+  //     if (pid_output > -target_speed) pid_setpoint -= 0.05;
+  //   }
+  //   else if (turning left) {
+  //     throttle_left_motor -= turning_speed;
+  //     throttle_right_motor += turning_speed;
+  //   }
+  //   else if (turning right) {
+  //     throttle_left_motor += turning_speed;
+  //     throttle_right_motor -= turning_speed;
+  //   }
+  //   else {    // No signal
+  //     if (pid_setpoint < -0.5) pid_setpoint += 0.05;
+  //     else if (pid_setpoint > 0.5) pid_setpoint -= 0.05;
+  //     else pid_setpoint = 0;
+  //   }
+  // }
 
   // Move the robot away if something gets too close to it
-//  if (!remote_controlled && start == 1) {
-//    if (sonar_dist[0] < CLOSE_DIST) {                           // Something is in front of the robot
-//      if (pid_setpoint > -2) pid_setpoint -= 0.025;             // Start moving backwards
-//      if (pid_output > -target_speed) pid_setpoint -= 0.025;
-//    }
-//    else if (sonar_dist[1] < CLOSE_DIST) {                      // Something is behind the robot
-//      if (pid_setpoint < 2) pid_setpoint += 0.025;              // Start moving backwards
-//      if (pid_output < target_speed) pid_setpoint += 0.025;
-//    }
-//    else {                                                      // No signal
-//      if (pid_setpoint < -0.5) pid_setpoint += 0.025;
-//      else if (pid_setpoint > 0.5) pid_setpoint -= 0.025;
-//      else pid_setpoint = 0;
-//    }
-//  }
+  // if (!remote_controlled && start == 1) {
+  //   if (sonar_dist[0] < CLOSE_DIST) {                           // Something is in front of the robot
+  //     if (pid_setpoint > -2) pid_setpoint -= 0.025;             // Start moving backwards
+  //     if (pid_output > -target_speed) pid_setpoint -= 0.025;
+  //   }
+  //   else if (sonar_dist[1] < CLOSE_DIST) {                      // Something is behind the robot
+  //     if (pid_setpoint < 2) pid_setpoint += 0.025;              // Start moving backwards
+  //     if (pid_output < target_speed) pid_setpoint += 0.025;
+  //   }
+  //   else {                                                      // No signal
+  //     if (pid_setpoint < -0.5) pid_setpoint += 0.025;
+  //     else if (pid_setpoint > 0.5) pid_setpoint -= 0.025;
+  //     else pid_setpoint = 0;
+  //   }
+  // }
 
   // Adjust self balance point to help robot find its steady point.  Only activate if the robot is not being commanded.
   if (pid_setpoint == 0) {
@@ -227,7 +227,7 @@ void loop() {
 // Send Motor Signals
 ////////////////////////////////////////////////////////////////////////
 // Run this interrupt every 20us.
-ISR(TIMER0_COMPA_vect){
+ISR(TIMER2_COMPA_vect){
   // Left Motor - step 2, dir 3
   throttle_counter_left_motor ++;                                   // Increment the memory variable by 1.
   if(throttle_counter_left_motor > throttle_left_motor_memory){     // Check if the motor throttle counter is greater than the memory variable.
