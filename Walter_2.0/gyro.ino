@@ -20,13 +20,13 @@ void read_gyro (){
     gyro_axis[3] -= gyro_axis_cal[3];
   }
 
-  gyro_yaw = gyro_axis[1]; //gyro_axis[eeprom_data[6] & 0b00000011];
-  gyro_pitch = gyro_axis[2]; //gyro_axis[eeprom_data[7] & 0b00000011];
-  gyro_roll = gyro_axis[3]; //gyro_axis[eeprom_data[8] & 0b00000011];
+  gyro_yaw = gyro_axis[1];
+  gyro_pitch = gyro_axis[2];
+  gyro_roll = gyro_axis[3];
   
-  acc_X = acc_axis[1]; //acc_axis[eeprom_data[7] & 0b00000011];
-  acc_Y = acc_axis[2]; //acc_axis[eeprom_data[6] & 0b00000011];
-  acc_Z = acc_axis[3]; //acc_axis[eeprom_data[8] & 0b00000011];
+  acc_X = acc_axis[1]; 
+  acc_Y = acc_axis[2]; 
+  acc_Z = acc_axis[3]; 
 }
 
 void init_gyro(){
